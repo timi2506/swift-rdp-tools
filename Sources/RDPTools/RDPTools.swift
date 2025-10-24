@@ -64,6 +64,7 @@ public class RDPFileDecoder {
     public func decode(from rdpFileContents: String) throws -> [RDPKey: RDPValue] {
         var values: [RDPKey: RDPValue] = [:]
         let lines = rdpFileContents
+            .replacingOccurrences(of: "\u{FEFF}", with: "")
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
             .components(separatedBy: "\n")
