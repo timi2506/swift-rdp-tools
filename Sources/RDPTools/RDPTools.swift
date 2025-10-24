@@ -73,22 +73,33 @@ public class RDPFileDecoder {
             let parts = line.split(separator: ":", maxSplits: 2).map(String.init)
             
             guard parts.count == 3 else {
+                print("❌ Invalid parts in line:", line)
                 throw RDPCodingError.invalidFile
             }
-        
+            
             let key = RDPKey(rawValue: parts[0])
             let type = parts[1]
             let value = parts[2]
             
-            var valueType: RDPValue?
-            switch type {
-                case "s": valueType = try String.decode(from: value)
-                case "i": valueType = try Int.decode(from: value)
-                case "b": valueType = try Data.decode(from: value)
-                default: throw RDPCodingError.invalidFile
+            do {
+                var valueType: RDPValue?
+                switch type {
+                    case "s": valueType = try String.decode(from: value)
+                    case "i": valueType = try Int.decode(from: value)
+                    case "b": valueType = try Data.decode(from: value)
+                    default:
+                        print("❌ Invalid type:", type, "in line:", line)
+                        throw RDPCodingError.invalidFile
+                }
+                guard let valueType else {
+                    print("❌ ValueType nil for line:", line)
+                    throw RDPCodingError.unknown
+                }
+                values[key] = valueType
+            } catch {
+                print("❌ Failed decoding line:", line)
+                throw error
             }
-            guard let valueType else { throw RDPCodingError.unknown }
-            values[key] = valueType
         }
         return values
     }
