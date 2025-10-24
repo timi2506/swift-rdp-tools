@@ -1,6 +1,6 @@
 import Foundation
 
-public struct RDPKey: RawRepresentable, Hashable, ExpressibleByStringLiteral {
+public struct RDPKey: RawRepresentable, Hashable, ExpressibleByStringLiteral, Codable {
     public let rawValue: String
     
     public init(rawValue: String) { self.rawValue = rawValue }
@@ -10,7 +10,7 @@ public struct RDPKey: RawRepresentable, Hashable, ExpressibleByStringLiteral {
     public static let fullAddress: RDPKey = "full address"
 }
 
-public enum RDPValue: Hashable, RawRepresentable {
+public enum RDPValue: Hashable, RawRepresentable, Codable {
     public init?(rawValue: any RDPCodable) {
         if let int = rawValue as? Int {
             self = .int(int)
