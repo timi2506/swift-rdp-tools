@@ -10,10 +10,22 @@ public struct RDPKey: RawRepresentable, Hashable, ExpressibleByStringLiteral {
     public static let fullAddress: RDPKey = "full address"
 }
 
-public enum RDPValue: Hashable {
-case int(Int)
-case string(String)
-case binary(Data)
+public enum RDPValue: Hashable, RawRepresentable {
+    public init?(rawValue: any RDPCodable) {
+        if let int = rawValue as? Int {
+            self = .int(int)
+        } else if let data = rawValue as? Data {
+            self = .binary(data)
+        } else if let string = rawValue as? String {
+            self = .string(string)
+        } else {
+            return nil
+        }
+    }
+    
+    case int(Int)
+    case string(String)
+    case binary(Data)
     fileprivate var character: Character {
         switch self {
             case .int(let value):
@@ -34,15 +46,14 @@ case binary(Data)
                 value.encodingValue
         }
     }
-}
-
-public extension RDPValue {
-    func `as`<T>() -> T? {
+    public var rawValue: RDPCodable {
         switch self {
-            case .int(let v as T): return v
-            case .string(let v as T): return v
-            case .binary(let v as T): return v
-            default: return nil
+            case .int(let int):
+                return int
+            case .string(let string):
+                return string
+            case .binary(let data):
+                return data
         }
     }
 }
@@ -104,11 +115,11 @@ public class RDPFileEncoder {
     }
 }
 
-protocol RDPCodable: RDPEncodable, RDPDecodable {
+public protocol RDPCodable: RDPEncodable, RDPDecodable {
     var character: Character { get }
 }
 
-protocol RDPEncodable {
+public protocol RDPEncodable {
     var encodingValue: String { get }
 }
 
@@ -118,18 +129,18 @@ extension RDPEncodable where Self: RDPCodable {
     }
 }
 
-protocol RDPDecodable {
+public protocol RDPDecodable {
     static func decode(from: String) throws -> RDPValue
 }
 
 extension Int: RDPCodable {
-    var encodingValue: String { "\(self)" }
+    public var encodingValue: String { "\(self)" }
     
-    var character: Character {
+    public var character: Character {
         "i"
     }
     
-    static func decode(from string: String) throws -> RDPValue {
+    public static func decode(from string: String) throws -> RDPValue {
         if let int = Int(string) {
             return .int(int)
         } else {
@@ -139,29 +150,29 @@ extension Int: RDPCodable {
 }
 
 extension String: RDPCodable {
-    var encodingValue: String {
+    public var encodingValue: String {
         self
     }
     
-    var character: Character {
+    public var character: Character {
         "s"
     }
     
-    static func decode(from string: String) throws -> RDPValue {
+    public static func decode(from string: String) throws -> RDPValue {
         return .string(string)
     }
 }
 
 extension Data: RDPCodable {
-    var encodingValue: String {
+    public var encodingValue: String {
         self.hexString
     }
     
-    var character: Character {
+    public var character: Character {
         "b"
     }
     
-    static func decode(from string: String) throws -> RDPValue {
+    public static func decode(from string: String) throws -> RDPValue {
         if let data = Data(hexString: string) {
             return .binary(data)
         } else {
