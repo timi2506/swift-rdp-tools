@@ -214,15 +214,17 @@ enum RDPCodingError: LocalizedError {
     case invalidFile
     case encodingError
     case unknown
-    var localizedDescription: String? {
+    
+    var errorDescription: String? {
         switch self {
             case .invalidString:
-                "String invalid for decoding to any RDPCodingValue, valid strings: integer strings, hex binary strings, strings"
+                return "Invalid string value — cannot decode to any known RDP type."
             case .invalidFile:
-                "Not a Valid RDP File"
+                return "Invalid RDP file format (expected key:type:value per line)."
             case .encodingError:
-                "An Unknown Error occured while encoding"
-            case .unknown: nil
+                return "An unknown error occurred while encoding."
+            case .unknown:
+                return "Unknown decoding error — possibly malformed or unexpected data."
         }
     }
 }
