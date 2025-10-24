@@ -35,7 +35,9 @@ public struct RDPValue: Identifiable, Hashable {
 }
 
 public class RDPFileDecoder {
-    func decode(from rdpFileContents: String) throws -> [RDPValue] {
+    public init() {}
+
+    public func decode(from rdpFileContents: String) throws -> [RDPValue] {
         var values: [RDPValue] = []
         let lines = rdpFileContents
             .replacingOccurrences(of: "\r\n", with: "\n")
@@ -66,7 +68,7 @@ public class RDPFileDecoder {
         }
         return values
     }
-    func decode(from rdpFileContents: Data) throws -> [RDPValue] {
+    public func decode(from rdpFileContents: Data) throws -> [RDPValue] {
         guard let fileContents = String(data: rdpFileContents, encoding: .utf16LittleEndian)
                 ?? String(data: rdpFileContents, encoding: .utf8)
                 ?? String(data: rdpFileContents, encoding: .unicode) else {
@@ -77,15 +79,15 @@ public class RDPFileDecoder {
 }
 
 public class RDPFileEncoder {
-    func encode(_ values: [RDPValue]) throws -> Data {
+    public init() {}
+
+    public func encode(_ values: [RDPValue]) throws -> Data {
         guard let data = values.map({ $0.encode() }).joined(separator: "\n").data(using: .utf8) else {
             throw RDPCodingError.encodingError
         }
         return data
     }
 }
-
-fileprivate protocol _RDPSealed {}
 
 protocol RDPCodable: RDPEncodable, RDPDecodable {
     var character: Character { get }
