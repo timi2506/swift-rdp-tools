@@ -119,7 +119,7 @@ public class RDPFileEncoder {
 
     public func encode(_ values: [RDPKey: RDPValue]) throws -> Data {
         guard let data = values.map({ (key, value) in
-            "\(key):\(value.character):\(value.encodingValue)"
+            "\(key.rawValue):\(value.character):\(value.encodingValue)"
         }).joined(separator: "\n").data(using: .utf8) else {
             throw RDPCodingError.encodingError
         }
@@ -137,7 +137,7 @@ public protocol RDPEncodable {
 
 extension RDPEncodable where Self: RDPCodable {
     func encode(with key: RDPKey) -> String {
-        "\(key):\(character):\(self)"
+        "\(key.rawValue):\(character):\(self)"
     }
 }
 
