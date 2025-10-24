@@ -215,3 +215,20 @@ enum RDPCodingError: LocalizedError {
         }
     }
 }
+
+extension RDPCodingError: CustomNSError {
+    public static var errorDomain: String { "RDPTools.RDPCodingError" }
+    
+    public var errorCode: Int {
+        switch self {
+            case .invalidString: return 1
+            case .invalidFile: return 2
+            case .encodingError: return 3
+            case .unknown: return 999
+        }
+    }
+    
+    public var errorUserInfo: [String : Any] {
+        [NSLocalizedDescriptionKey: errorDescription ?? "Unknown error"]
+    }
+}
