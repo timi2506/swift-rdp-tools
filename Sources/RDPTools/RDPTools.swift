@@ -127,7 +127,7 @@ public class RDPFileEncoder {
     }
 }
 
-public protocol RDPCodable: RDPEncodable, RDPDecodable {
+public protocol RDPCodable: RDPEncodable, RDPDecodable, Codable {
     var character: Character { get }
 }
 
