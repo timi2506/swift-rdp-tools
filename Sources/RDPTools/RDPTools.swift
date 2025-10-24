@@ -1,5 +1,15 @@
 import Foundation
 
+public struct RDPKey: RawRepresentable, Hashable, ExpressibleByStringLiteral {
+    public let rawValue: String
+    
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public init(stringLiteral value: String) { self.rawValue = value }
+    
+    public static let username: RDPKey = "username"
+    public static let fullAddress: RDPKey = "full address"
+}
+
 public enum RDPValue: Hashable {
 case int(Int)
 case string(String)
@@ -29,8 +39,8 @@ case binary(Data)
 public class RDPFileDecoder {
     public init() {}
 
-    public func decode(from rdpFileContents: String) throws -> [String: RDPValue] {
-        var values: [String: RDPValue] = [:]
+    public func decode(from rdpFileContents: String) throws -> [RDPKey: RDPValue] {
+        var values: [RDPKey: RDPValue] = [:]
         let lines = rdpFileContents
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
@@ -43,8 +53,8 @@ public class RDPFileDecoder {
             guard parts.count == 3 else {
                 throw RDPCodingError.invalidFile
             }
-            
-            let key = parts[0]
+        
+            let key = RDPKey(rawValue: parts[0])
             let type = parts[1]
             let value = parts[2]
             
@@ -60,7 +70,7 @@ public class RDPFileDecoder {
         }
         return values
     }
-    public func decode(from rdpFileContents: Data) throws -> [String: RDPValue] {
+    public func decode(from rdpFileContents: Data) throws -> [RDPKey: RDPValue] {
         guard let fileContents = String(data: rdpFileContents, encoding: .utf16LittleEndian)
                 ?? String(data: rdpFileContents, encoding: .utf8)
                 ?? String(data: rdpFileContents, encoding: .unicode) else {
@@ -73,7 +83,7 @@ public class RDPFileDecoder {
 public class RDPFileEncoder {
     public init() {}
 
-    public func encode(_ values: [String: RDPValue]) throws -> Data {
+    public func encode(_ values: [RDPKey: RDPValue]) throws -> Data {
         guard let data = values.map({ (key, value) in
             "\(key):\(value.character):\(value.encodingValue)"
         }).joined(separator: "\n").data(using: .utf8) else {
@@ -92,7 +102,7 @@ protocol RDPEncodable {
 }
 
 extension RDPEncodable where Self: RDPCodable {
-    func encode(with key: String) -> String {
+    func encode(with key: RDPKey) -> String {
         "\(key):\(character):\(self)"
     }
 }
