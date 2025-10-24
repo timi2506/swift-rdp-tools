@@ -141,7 +141,7 @@ extension RDPEncodable where Self: RDPCodable {
 }
 
 public protocol RDPDecodable {
-    static func decode(from: String) throws -> RDPValue
+    static func decode(from: String?) throws -> RDPValue
 }
 
 extension Int: RDPCodable {
@@ -151,7 +151,8 @@ extension Int: RDPCodable {
         "i"
     }
     
-    public static func decode(from string: String) throws -> RDPValue {
+    public static func decode(from string: String?) throws -> RDPValue {
+        guard let string else { throw RDPCodingError.invalidString }
         if let int = Int(string) {
             return .int(int)
         } else {
@@ -169,8 +170,8 @@ extension String: RDPCodable {
         "s"
     }
     
-    public static func decode(from string: String) throws -> RDPValue {
-        return .string(string)
+    public static func decode(from string: String?) throws -> RDPValue {
+        return .string(string ?? "")
     }
 }
 
@@ -183,7 +184,8 @@ extension Data: RDPCodable {
         "b"
     }
     
-    public static func decode(from string: String) throws -> RDPValue {
+    public static func decode(from string: String?) throws -> RDPValue {
+        guard let string else { throw RDPCodingError.invalidString }
         if let data = Data(hexString: string) {
             return .binary(data)
         } else {
