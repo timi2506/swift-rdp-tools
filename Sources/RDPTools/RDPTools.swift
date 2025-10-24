@@ -36,6 +36,17 @@ case binary(Data)
     }
 }
 
+public extension RDPValue {
+    func `as`<T>() -> T? {
+        switch self {
+            case .int(let v as T): return v
+            case .string(let v as T): return v
+            case .binary(let v as T): return v
+            default: return nil
+        }
+    }
+}
+
 public class RDPFileDecoder {
     public init() {}
 
