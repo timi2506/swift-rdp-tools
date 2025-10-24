@@ -73,7 +73,7 @@ public class RDPFileDecoder {
         for line in lines {
             let parts = line.split(separator: ":", maxSplits: 2).map(String.init)
             
-            guard parts.count == 2 else {
+            guard parts.count == 2 || parts.count == 3 else {
                 print("Invalid parts in line:", line)
                 throw RDPCodingError.invalidFile
             }
