@@ -1,44 +1,36 @@
 import Foundation
 
-public struct RDPValue: Identifiable, Hashable {
-    @frozen public enum Value: Hashable {
-        case int(Int)
-        case string(String)
-        case binary(Data)
-        fileprivate var character: Character {
-            switch self {
-                case .int(let value):
-                    value.character
-                case .string(let value):
-                    value.character
-                case .binary(let value):
-                    value.character
-            }
-        }
-        fileprivate var encodingValue: String {
-            switch self {
-                case .int(let value):
-                    value.encodingValue
-                case .string(let value):
-                    value.encodingValue
-                case .binary(let value):
-                    value.encodingValue
-            }
+public enum RDPValue: Hashable {
+case int(Int)
+case string(String)
+case binary(Data)
+    fileprivate var character: Character {
+        switch self {
+            case .int(let value):
+                value.character
+            case .string(let value):
+                value.character
+            case .binary(let value):
+                value.character
         }
     }
-    public var key: String
-    public var value: Value
-    public var id: String { key }
-    fileprivate func encode() -> String {
-        return "\(key):\(value.character):\(value.encodingValue)"
+    fileprivate var encodingValue: String {
+        switch self {
+            case .int(let value):
+                value.encodingValue
+            case .string(let value):
+                value.encodingValue
+            case .binary(let value):
+                value.encodingValue
+        }
     }
 }
 
 public class RDPFileDecoder {
     public init() {}
 
-    public func decode(from rdpFileContents: String) throws -> [RDPValue] {
-        var values: [RDPValue] = []
+    public func decode(from rdpFileContents: String) throws -> [String: RDPValue] {
+        var values: [String: RDPValue] = [:]
         let lines = rdpFileContents
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
@@ -56,7 +48,7 @@ public class RDPFileDecoder {
             let type = parts[1]
             let value = parts[2]
             
-            var valueType: RDPValue.Value?
+            var valueType: RDPValue?
             switch type {
                 case "s": valueType = try String.decode(from: value)
                 case "i": valueType = try Int.decode(from: value)
@@ -64,11 +56,11 @@ public class RDPFileDecoder {
                 default: throw RDPCodingError.invalidFile
             }
             guard let valueType else { throw RDPCodingError.unknown }
-            values.append(RDPValue(key: key, value: valueType))
+            values[key] = valueType
         }
         return values
     }
-    public func decode(from rdpFileContents: Data) throws -> [RDPValue] {
+    public func decode(from rdpFileContents: Data) throws -> [String: RDPValue] {
         guard let fileContents = String(data: rdpFileContents, encoding: .utf16LittleEndian)
                 ?? String(data: rdpFileContents, encoding: .utf8)
                 ?? String(data: rdpFileContents, encoding: .unicode) else {
@@ -81,8 +73,10 @@ public class RDPFileDecoder {
 public class RDPFileEncoder {
     public init() {}
 
-    public func encode(_ values: [RDPValue]) throws -> Data {
-        guard let data = values.map({ $0.encode() }).joined(separator: "\n").data(using: .utf8) else {
+    public func encode(_ values: [String: RDPValue]) throws -> Data {
+        guard let data = values.map({ (key, value) in
+            "\(key):\(value.character):\(value.encodingValue)"
+        }).joined(separator: "\n").data(using: .utf8) else {
             throw RDPCodingError.encodingError
         }
         return data
@@ -104,7 +98,7 @@ extension RDPEncodable where Self: RDPCodable {
 }
 
 protocol RDPDecodable {
-    static func decode(from: String) throws -> RDPValue.Value
+    static func decode(from: String) throws -> RDPValue
 }
 
 extension Int: RDPCodable {
@@ -114,7 +108,7 @@ extension Int: RDPCodable {
         "i"
     }
     
-    static func decode(from string: String) throws -> RDPValue.Value {
+    static func decode(from string: String) throws -> RDPValue {
         if let int = Int(string) {
             return .int(int)
         } else {
@@ -132,7 +126,7 @@ extension String: RDPCodable {
         "s"
     }
     
-    static func decode(from string: String) throws -> RDPValue.Value {
+    static func decode(from string: String) throws -> RDPValue {
         return .string(string)
     }
 }
@@ -146,7 +140,7 @@ extension Data: RDPCodable {
         "b"
     }
     
-    static func decode(from string: String) throws -> RDPValue.Value {
+    static func decode(from string: String) throws -> RDPValue {
         if let data = Data(hexString: string) {
             return .binary(data)
         } else {
